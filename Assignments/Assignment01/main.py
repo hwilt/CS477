@@ -13,6 +13,8 @@ for i, c in enumerate(s):
         # Record that s[i+1] is one of the following characters
         next[c].append(s[i+1])
 
+next['W'].append('z') # Add a loop for the last character
+
 
 
 MAX_LENGTH = 100 # The maximum length of the output
@@ -21,9 +23,14 @@ output = "W"    # The output string, starting with "W"
 while len(output) < MAX_LENGTH:
     # Get the last character in the output
     last_char = output[-1]
+    
+    # check if there is no next character
+    if not last_char in next:
+        break
+
     # Get a random character that could follow it
     next_char = random.choice(next[last_char])
     # Add the new character to the output
     output += next_char
 
-print(output)
+print("\'" + output + "\'")

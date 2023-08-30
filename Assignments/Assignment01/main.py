@@ -13,7 +13,7 @@ for i, c in enumerate(s):
         # Record that s[i+1] is one of the following characters
         next[c].append(s[i+1])
 
-next['W'].append('z') # Add a loop for the last character
+#next['W'].append('z') # dead end
 
 
 

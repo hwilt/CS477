@@ -152,6 +152,105 @@ class State:
         grid = np.array(grid)
         plt.imshow(grid, interpolation='none', cmap=cmap)
 
+
+    def is_goal(self):
+        """
+        Check if the current state is at the goal
+
+        Returns
+        -------
+        boolean: True if the current state is at the goal, false otherwise
+        """
+        isGoal = False
+
+        # Red car is first car in list
+        redCar = self.cars[0]
+        # horizontal - j (column) + (length of car (L) - 1) = goal column
+        # - 1 to account for the fact that the first part of the car is already in the column
+        if redCar.j + (redCar.L - 1) == self.goal[1]:
+            isGoal = True
+
+        return isGoal
+
+    def get_neighbors(self):
+        """
+        Create a list of states that represent all next possible states
+
+        Returns
+        -------
+        list of states: List of all next possible states
+        """
+        neighbors = []
+        
+        currentGrid = self.get_state_grid()
+        
+        # Loop through all cars
+        for i, car in enumerate(self.cars):
+            # check if car is horizontal
+            if car.horiz:
+                if car.j - 1 >= 0 and currentGrid[car.i][car.j - 1] == -1:
+                    # Create a new state
+                    newState = self.clone()
+                    # Move car left
+                    newState.cars[i].j -= 1
+                    # Add new state to neighbors
+                    neighbors.append(newState)
+                # check if car can move right
+                if (car.j + car.L) < self.N and currentGrid[car.i][car.j + car.L] == -1:
+                    # Create a new state
+                    newState = self.clone()
+                    # Move car right
+                    newState.cars[i].j += 1
+                    # Add new state to neighbors
+                    neighbors.append(newState)
+            else:
+                if car.i - 1 >= 0 and currentGrid[car.i - 1][car.j] == -1:
+                    # Create a new state
+                    newState = self.clone()
+                    # Move car up
+                    newState.cars[i].i -= 1
+                    # Add new state to neighbors
+                    neighbors.append(newState)
+                if (car.i + car.L) < self.N and currentGrid[car.i + car.L][car.j] == -1:
+                    # Create a new state
+                    newState = self.clone()
+                    # Move car down
+                    newState.cars[i].i += 1
+                    # Add new state to neighbors
+                    neighbors.append(newState)
+        return neighbors
+
     def solve(self):
-        ## TODO: Fill this in
-        pass
+        """
+        Solve the puzzle using BFS
+
+        Returns
+        -------
+        list of states: List of states that represent the path to the goal
+        """
+        # create the queue
+        currentState = self.clone()
+        queue = []
+        visited = {}
+        goalReached = False
+        # add the first state to the queue
+        queue.append(currentState)
+        visited[currentState.get_state_hashable()] = True
+        while not goalReached and len(queue) > 0:
+            currentState = queue.pop(0)
+            
+            #print(currentState.is_goal())
+            if currentState.is_goal():
+                goalReached = True
+                queue.append(currentState)
+            else:
+                neighbors = currentState.get_neighbors()
+                for neighbor in neighbors:
+                    if neighbor.get_state_hashable() not in visited:
+                        queue.append(neighbor)
+                        visited[neighbor.get_state_hashable()] = True
+        return queue
+
+
+
+

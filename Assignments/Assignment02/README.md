@@ -1,5 +1,6 @@
 # HW2_RushHour
-## Chris Tralie
+## Created by: Chris Tralie
+### Some more code by: Henry Wilt
 
 This is starter code for an AI assignment at Ursinus college.  Please visit
 https://ursinus-cs477-f2021.github.io/CoursePage/Assignments/HW2_RushHour

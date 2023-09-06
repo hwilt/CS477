@@ -228,29 +228,22 @@ class State:
         -------
         list of states: List of states that represent the path to the goal
         """
-        # create the queue
-        currentState = self.clone()
-        queue = []
+
+        print("Solving...")
+        state = self.clone()
+        froniter = []
         visited = {}
-        goalReached = False
-        # add the first state to the queue
-        queue.append(currentState)
-        visited[currentState.get_state_hashable()] = True
-        while not goalReached and len(queue) > 0:
-            currentState = queue.pop(0)
-            
-            #print(currentState.is_goal())
-            if currentState.is_goal():
-                goalReached = True
-                queue.append(currentState)
+        reachedGoal = False
+        froniter.append(state)
+        while not reachedGoal and len(froniter) > 0:
+            state = froniter.pop(0)
+            visited[state.get_state_hashable()] = True
+            if state.is_goal():
+                reachedGoal = True
+                #froniter.append(state)
             else:
-                neighbors = currentState.get_neighbors()
+                neighbors = state.get_neighbors()
                 for neighbor in neighbors:
                     if neighbor.get_state_hashable() not in visited:
-                        queue.append(neighbor)
-                        visited[neighbor.get_state_hashable()] = True
-        return queue
-
-
-
-
+                        froniter.append(neighbor)               
+        return froniter

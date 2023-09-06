@@ -220,30 +220,88 @@ class State:
                     neighbors.append(newState)
         return neighbors
 
+
     def solve(self):
         """
-        Solve the puzzle using BFS
+        Solve the puzzle using BFTS
 
         Returns
         -------
         list of states: List of states that represent the path to the goal
         """
 
-        print("Solving...")
-        state = self.clone()
-        froniter = []
-        visited = {}
+        solution = []
+        queue = [self.clone()]
         reachedGoal = False
-        froniter.append(state)
-        while not reachedGoal and len(froniter) > 0:
-            state = froniter.pop(0)
-            visited[state.get_state_hashable()] = True
-            if state.is_goal():
+
+        while len(queue) > 0 and not reachedGoal:
+            currentState = queue.pop(0)
+            if currentState.is_goal():
                 reachedGoal = True
-                #froniter.append(state)
+                solution.append(currentState)
+                while currentState.prev is not None:
+                    currentState = currentState.prev
+                    solution.append(currentState)
+                solution.reverse()
             else:
-                neighbors = state.get_neighbors()
+                neighbors = currentState.get_neighbors()
+                for neighbor in neighbors:
+                    neighbor.prev = currentState
+                    queue.append(neighbor)
+        return solution
+
+    def solve_graph(self):
+        """
+        Solve the puzzle using BFGS
+        Using visited set to keep track of visited states
+
+        Returns
+        -------
+        list of states: List of states that represent the path to the goal
+        """
+
+        solution = []
+        queue = [self.clone()]
+        visited = set()
+        visited.add(self.get_state_hashable())
+        reachedGoal = False
+
+        while len(queue) > 0 and not reachedGoal:
+            currentState = queue.pop(0)
+            if currentState.is_goal():
+                reachedGoal = True
+                solution.append(currentState)
+                while currentState.prev is not None:
+                    currentState = currentState.prev
+                    solution.append(currentState)
+                solution.reverse()
+            else:
+                neighbors = currentState.get_neighbors()
                 for neighbor in neighbors:
                     if neighbor.get_state_hashable() not in visited:
-                        froniter.append(neighbor)               
-        return froniter
+                        neighbor.prev = currentState
+                        queue.append(neighbor)
+                        visited.add(neighbor.get_state_hashable())
+        return solution
+
+
+    def solve_astar(self):
+        """
+        Solving using A* algorithm
+
+        Returns
+        -------
+        list of states: List of states that represent the path to the goal
+        """
+        return []
+
+
+    def solve_myastar(self):
+        """
+        This is my own creation
+
+        Returns
+        -------
+        list of states: List of states that represent the path to the goal
+        """
+        return []

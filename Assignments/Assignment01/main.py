@@ -25,7 +25,7 @@ while len(output) < MAX_LENGTH:
     last_char = output[-1]
     
     # check if there is no next character
-    if not last_char in next:
+    if len(next[last_char]) == 0:
         break
 
     # Get a random character that could follow it

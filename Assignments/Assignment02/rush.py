@@ -282,26 +282,44 @@ class State:
                         neighbor.prev = currentState
                         queue.append(neighbor)
                         visited.add(neighbor.get_state_hashable())
-        return solution
+        return solution 
 
 
-    def solve_astar(self):
+    def solve_astar(self, heuristic):
         """
         Solving using A* algorithm
 
-        Returns
-        -------
-        list of states: List of states that represent the path to the goal
-        """
-        return []
-
-
-    def solve_myastar(self):
-        """
-        This is my own creation
+        Parameters
+        ----------
+        heuristic: function
 
         Returns
         -------
         list of states: List of states that represent the path to the goal
         """
+        
         return []
+                        
+
+def blocking_heuristic(state):
+    """
+    Blocking heuristic
+
+    Returns
+    -------
+    int: Blocking heuristic value
+    """
+    #TODO: Implement heuristic
+    return 0
+
+
+def my_heuristic(state):
+    """
+    This is my own creation
+    Number of cars in front of red car
+
+    Returns
+    -------
+    int: My heuristic value
+    """
+    return 0

@@ -1,3 +1,4 @@
+from heapq import heappush, heappop
 class Car:
     def __init__(self, i, j, L, horiz):
         """
@@ -304,13 +305,13 @@ class State:
         visited = set()
         queue = []
         # Queue holds things with (cumulative cost + heuristic(state), state, previous state, cumulative cost)
-        queue.append((heuristic(state), state, None, 0))
+        heappush(queue, (heuristic(state), state, None, 0))
         reachedGoal = False
         d = 1
         count = 1
 
         while len(queue) > 0 and not reachedGoal:
-            (estimate, currentState, previousState, cumulativeCost) = queue.pop(0)
+            (estimate, currentState, previousState, cumulativeCost) = heappop(queue)
             if currentState.is_goal():
                 reachedGoal = True
                 solution.append(currentState)
@@ -324,7 +325,7 @@ class State:
                     if neighbor.get_state_hashable() not in visited:
                         visited.add(neighbor.get_state_hashable())
                         costn = cumulativeCost + d + heuristic(neighbor)
-                        queue.append((costn, neighbor, currentState, cumulativeCost + d))
+                        heappush(queue, (costn, neighbor, currentState, cumulativeCost + d))
                         neighbor.prev = currentState
                         count += 1
 

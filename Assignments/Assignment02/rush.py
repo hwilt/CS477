@@ -265,6 +265,7 @@ class State:
         visited = set()
         visited.add(self.get_state_hashable())
         reachedGoal = False
+        count = 1
 
         while len(queue) > 0 and not reachedGoal:
             currentState = queue.pop(0)
@@ -282,7 +283,8 @@ class State:
                         neighbor.prev = currentState
                         queue.append(neighbor)
                         visited.add(neighbor.get_state_hashable())
-        return solution 
+                        count += 1
+        return solution, count
 
 
     def solve_astar(self, heuristic):
@@ -297,29 +299,93 @@ class State:
         -------
         list of states: List of states that represent the path to the goal
         """
-        
-        return []
+        state = self.clone()
+        solution = []
+        visited = set()
+        queue = []
+        # Queue holds things with (cumulative cost + heuristic(state), state, previous state, cumulative cost)
+        queue.append((heuristic(state), state, None, 0))
+        reachedGoal = False
+        d = 1
+        count = 1
+
+        while len(queue) > 0 and not reachedGoal:
+            (estimate, currentState, previousState, cumulativeCost) = queue.pop(0)
+            if currentState.is_goal():
+                reachedGoal = True
+                solution.append(currentState)
+                while currentState.prev is not None:
+                    currentState = currentState.prev
+                    solution.append(currentState)
+                solution.reverse()
+            else:
+                neighbors = currentState.get_neighbors()
+                for neighbor in neighbors:
+                    if neighbor.get_state_hashable() not in visited:
+                        visited.add(neighbor.get_state_hashable())
+                        costn = cumulativeCost + d + heuristic(neighbor)
+                        queue.append((costn, neighbor, currentState, cumulativeCost + d))
+                        neighbor.prev = currentState
+                        count += 1
+
+        return solution, count
+
+
                         
 
 def blocking_heuristic(state):
     """
     Blocking heuristic
+    hB(S) = 0 if the red car is at the goal when the board is in state S
+    hB(S) = 1 if the red car is not at the goal but there's nothing in the way when the board is in state S
+    hB(S) = 2 if the red car is not at the goal and there is at least one car in between it and the goal when the board is in state S
 
     Returns
     -------
     int: Blocking heuristic value
     """
-    #TODO: Implement heuristic
-    return 0
+    # Red car is first car in list
+    redCar = state.cars[0]
+    res = 0
+    # check if red car is at goal
+    if state.is_goal():
+        res = 0
+    else:
+        # goal car is not at goal but there's nothing in the way
+        res = 1
+        # check if there's a car in the way
+        for i in range(redCar.j + redCar.L, state.N):
+            if state.get_state_grid()[redCar.i][i] != -1:
+                res = 2
+                break
+    return res
 
 
 def my_heuristic(state):
     """
     This is my own creation
     Number of cars in front of red car
+    h(S) = 0 if the goal car is at the goal when the board is in state S
+    h(S) = 1 if the goal car is not at the goal but there's nothing in the way when the board is in state S
+    h(S) = 1 + number of cars in front of red car if the red car is not at the goal and there is at least one car in between it and the goal when the board is in state S
 
     Returns
     -------
     int: My heuristic value
     """
-    return 0
+    # Red car is first car in list
+    redCar = state.cars[0]
+    stateGrid = state.get_state_grid()
+    res = 0
+    # check if red car is at goal
+    if state.is_goal():
+        res = 0
+    else:
+        # goal car is not at goal but there's nothing in the way
+        res = 1
+        # check how many cars are in front of red car
+        for i in range(redCar.j + redCar.L, state.N):
+            position = stateGrid[redCar.i][i]
+            if position != -1 and position != 0:
+                res += 1
+    return res

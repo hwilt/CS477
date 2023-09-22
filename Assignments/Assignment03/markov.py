@@ -12,6 +12,7 @@ class MarkovModel:
         """
         self.k = k
         ## TODO: Setup any other member variables that might be useful
+        self.markov_dict = {}
     
     def load_file(self, filename, lower=False):
         """
@@ -56,8 +57,42 @@ class MarkovModel:
         Incorporate a particular string into your model by adding any prefixes
         if they don't exist and by updating counts
         """
-        ## TODO: Fill this in
-        return # This does nothing
+        # check if the string is long enough
+        if len(s) < self.k:
+            return
+        # add [0:k] to end of string
+        s += s[0:self.k+1]
+        # example: {' you ': {'s':1, 't':1, 'r':1, 'i':1, 'n':1, 'g':1}}
+        for i in range(len(s)- (self.k+1)):
+            prefix = s[i:i+self.k]
+            character = s[i+self.k]
+            # if prefix is not in markov_dict, add it
+            if prefix not in self.markov_dict:
+                self.markov_dict[prefix] = {}
+            # if character is not in markov_dict[prefix], add it
+            if character not in self.markov_dict[prefix]:
+                self.markov_dict[prefix][character] = 0
+            # increment the character count
+            self.markov_dict[prefix][character] += 1
+        
+    def get_prefixs(self):
+        """
+        Print out the prefix in a readable format
+        """
+        for prefix in self.markov_dict:
+            print(prefix)
+    
+    def get_prefix(self, prefix):
+        """
+        Print out the prefix and it's characters in a readable format
+        """
+        return self.markov_dict[prefix]
+
+    def get_prefix_count(self):
+        """
+        Print out the prefix count
+        """
+        return len(self.markov_dict)
     
     def get_log_probability(self, s):
         """

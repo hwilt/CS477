@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class MarkovModel:
     def __init__(self, k):
@@ -11,7 +12,7 @@ class MarkovModel:
             Length of prefix to use
         """
         self.k = k
-        ## TODO: Setup any other member variables that might be useful
+        self.unique_chars = set()
         self.markov_dict = {}
     
     def load_file(self, filename, lower=False):
@@ -64,6 +65,8 @@ class MarkovModel:
         s += s[0:self.k+1]
         # example: {' you ': {'s':1, 't':1, 'r':1, 'i':1, 'n':1, 'g':1}}
         for i in range(len(s)- (self.k+1)):
+            # add unique characters to unique_chars
+            self.unique_chars.add(s[i])
             prefix = s[i:i+self.k]
             character = s[i+self.k]
             # if prefix is not in markov_dict, add it
@@ -77,24 +80,38 @@ class MarkovModel:
         
     def get_prefixs(self):
         """
-        Print out the prefix in a readable format
+        Print out the prefixs in a readable format
         """
         for prefix in self.markov_dict:
             print(prefix)
     
     def get_prefix(self, prefix):
         """
-        Print out the prefix and it's characters in a readable format
+        return the prefix and it's characters
         """
         return self.markov_dict[prefix]
 
     def get_prefix_count(self):
         """
-        Print out the prefix count
+        return the prefix count of the ditcionary
         """
         return len(self.markov_dict)
+
+    def get_unique_chars(self):
+        """
+        return the unique characters variable
+        """
+        return self.unique_chars
+
+    def __str__(self):
+        """
+        Print out the model in a readable format
+        """
+        for prefix in self.markov_dict:
+            print(prefix, self.markov_dict[prefix])
+        return "This is a Markov model with prefix length " + str(self.k) + "."
     
-    def get_log_probability(self, s):
+    def get_log_probability(self, s, debug=False):
         """
         Compute the log probability of a particular string according to the model
 
@@ -107,8 +124,37 @@ class MarkovModel:
         -------
         float: Log probability
         """
-        ## TODO: Fill this in
-        return 0 # This is a dummy value
+        prob = 0
+        # log(N(p.c)+1/N(p)+S)
+        # N(p.c) = number of times character c follows prefix p
+        # N(p) = number of times prefix p appears
+        # S = number of unique characters in model
+
+        S = len(self.unique_chars)
+        for i in range(len(s) - (self.k)):
+            end = i+self.k
+            prefix = s[i:end]
+            character = s[end]
+            if debug:
+                print("prefix: {}. character {}".format(prefix, character), end='. ')
+            if prefix in self.markov_dict:
+                Np = sum(self.markov_dict[prefix].values())
+                if character in self.markov_dict[prefix]:
+                    Npc = self.markov_dict[prefix][character]
+                    curr = np.log((Npc+1)/(Np+S))
+                    prob += curr
+                    if debug:
+                        print("np: {}. npc: {}. curr prob: {}".format(Np, Npc, curr), end='.\n')
+                else:
+                    curr = np.log(1/(Np+S))
+                    prob += curr
+                    if debug:
+                        print("np: {}. npc: 0. curr prob: {}".format(Np, curr), end='.\n')
+            else:
+                prob += np.log(1/S)
+        return prob
+
+
 
     def synthesize_text(self, length):
         """

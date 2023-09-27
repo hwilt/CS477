@@ -131,27 +131,25 @@ class MarkovModel:
         # S = number of unique characters in model
 
         S = len(self.unique_chars)
-        for i in range(len(s) - (self.k)):
-            end = i+self.k
-            prefix = s[i:end]
+        for start in range(len(s) - (self.k)):
+            end = start+self.k
+            prefix = s[start:end]
             character = s[end]
             if debug:
                 print("prefix: {}. character {}".format(prefix, character), end='. ')
             if prefix in self.markov_dict:
                 Np = sum(self.markov_dict[prefix].values())
+                Npc = 0
                 if character in self.markov_dict[prefix]:
                     Npc = self.markov_dict[prefix][character]
-                    curr = np.log((Npc+1)/(Np+S))
-                    prob += curr
-                    if debug:
-                        print("np: {}. npc: {}. curr prob: {}".format(Np, Npc, curr), end='.\n')
+                    curr = (Npc+1)/(Np+S)
                 else:
-                    curr = np.log(1/(Np+S))
-                    prob += curr
-                    if debug:
-                        print("np: {}. npc: 0. curr prob: {}".format(Np, curr), end='.\n')
+                    curr = (Npc+1)/(Np+S)
+                if debug:
+                    print("np: {}. npc: {}. curr prob: {}".format(Np, Npc, curr), end='.\n')
             else:
-                prob += np.log(1/S)
+                curr = 1/S
+            prob += math.log(curr)
         return prob
 
 

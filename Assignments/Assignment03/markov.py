@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import random
 
 class MarkovModel:
     def __init__(self, k):
@@ -153,6 +154,33 @@ class MarkovModel:
         return prob
 
 
+    def get_next_char(self, prefix):
+        """
+        Get the next character for a particular prefix based on the model
+
+        Parameters
+        ----------
+        prefix: string
+            Prefix for which to get the next character
+        
+        Returns
+        -------
+        string: The next character
+        """
+        # get the dictionary for the prefix
+        prefix_dict = self.markov_dict[prefix]
+        # get the total count of characters that follow the prefix
+        total_count = sum(prefix_dict.values())
+        # get a random number between 0 and total_count
+        rand_num = random.randint(0, total_count-1)
+        # go through the dictionary and add up the counts until you get to the random number
+        curr_count = 0
+        for character in prefix_dict:
+            curr_count += prefix_dict[character]
+            if curr_count > rand_num:
+                return character
+        return None
+
 
     def synthesize_text(self, length):
         """
@@ -169,4 +197,16 @@ class MarkovModel:
         string: The synthesized text
         """
         ## TODO: Fill this in
-        return "" # This does nothing
+        # get random prefix from markov_dict
+        prefix = random.choice(list(self.markov_dict.keys()))
+        text = prefix
+        while len(text) < length:
+            # synthesize the rest of the text one character at a time, updating the current prefix you're on to be the last k characters in the string you're synthesizing as you go along
+            # get the next character
+            next_char = self.get_next_char(prefix)
+            # add it to the text
+            text += next_char
+            # update the prefix
+            prefix = text[-self.k:]
+
+        return text

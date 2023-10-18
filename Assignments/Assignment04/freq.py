@@ -19,7 +19,17 @@ def naive_freqs(all_freqs):
     freqs: list of float
         List of frequencies with the smallest threshold value at each time instant
     """
-    return np.array([440]*10) ## TODO: This is a dummy value
+    freqs = []
+    for freq_list in all_freqs:
+        min_freq = float('inf')
+        min_thresh = float('inf')
+        for freq, thresh in freq_list:
+            if thresh < min_thresh and freq < min_freq:
+                min_freq = freq
+                min_thresh = thresh
+        freqs.append(min_freq)
+    return np.array(freqs)
+    #return np.array([440]*10) ## TODO: This is a dummy value
 
 def pyin_freqs(all_freqs, fmin=100, fmax=2000, spacing=2**(1/120), df=30, ps=0.9999, mu=0.1):
     """

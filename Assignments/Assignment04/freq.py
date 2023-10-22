@@ -1,4 +1,5 @@
 import numpy as np
+from audiotools import *
 
 def naive_freqs(all_freqs):
     """
@@ -25,6 +26,8 @@ def naive_freqs(all_freqs):
         #freqs[time] = min([(y, x) for x, y in data])[::-1][0]
         freqs[time] = data[np.argmin([y for x, y in data])][0]
     return freqs
+
+import numpy as np
 
 def pyin_freqs(all_freqs, fmin=100, fmax=2000, spacing=2**(1/120), df=30, ps=0.9999, mu=0.1):
     """
@@ -60,8 +63,4 @@ def pyin_freqs(all_freqs, fmin=100, fmax=2000, spacing=2**(1/120), df=30, ps=0.9
     freqs: list of float
         List of frequencies in the highest likelihood path
     """
-    res = np.zeros(len(all_freqs))
-
-
-
-    return res
+    return naive_freqs(all_freqs)

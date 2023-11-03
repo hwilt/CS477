@@ -70,6 +70,7 @@ class MovieModel:
         return self.word_dict
         
 
+
 model = MovieModel()
 model.load_file_lines('text/movies/pos/1.txt', lower=True)
 print(model.get_wordDict())

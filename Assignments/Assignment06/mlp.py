@@ -16,8 +16,9 @@ class MLP:
         to the last layer, using the output of the last layer
     """
     def __init__(self, d, est_lossderiv):
-        ## TODO: Fill this in
-        pass
+        self.dim = d
+        self.est_lossderiv = est_lossderiv
+        #
         
     
     def add_layer(self, m, f, fderiv, name=None):
@@ -33,7 +34,6 @@ class MLP:
         name: string
             If specified, store the name of this layer
         """
-        ## TODO: Fill this in
         pass
 
     
@@ -55,8 +55,8 @@ class MLP:
         ndarray(m)
             Output of the network
         """
-        ## TODO: Fill this in
         pass
+        
     
     def backward(self, x, y):
         """

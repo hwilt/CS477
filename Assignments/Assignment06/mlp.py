@@ -19,7 +19,16 @@ class MLP:
         self.dim = d
         self.est_lossderiv = est_lossderiv
         #
-        
+        ## list of dictionary (name, m, f, fderiv, W, b)
+        self.layers = []
+
+        ## forward pass variables
+        self.a = []
+        self.h = []
+
+        ## backpropagation variables
+        self.dW = []
+        self.db = [] 
     
     def add_layer(self, m, f, fderiv, name=None):
         """
@@ -34,8 +43,19 @@ class MLP:
         name: string
             If specified, store the name of this layer
         """
-        pass
-
+        ## create weights and biases for this layer and store them as instance variables
+        if self.layers:
+            _W = np.random.randn(m, self.layers[-1]["m"])
+        else:
+            _W = np.random.randn(m, self.dim)
+        #print(f"w shape: {_W.shape}")
+        _b = np.random.randn(m)
+        #print(f"b: {_b}")
+        ## multiply by 0.1 to avoid exploding gradients
+        _W *= 0.1
+        self.layers.append({"name": name, "m": m, "f": f, "fderiv": fderiv, "W": _W, "b": _b})
+        self.a.append(-1)
+        self.h.append(-1)
     
     def forward(self, x, start=None, end=None):
         """
@@ -55,7 +75,33 @@ class MLP:
         ndarray(m)
             Output of the network
         """
-        pass
+        y = x.T
+        i = 0
+        j = len(self.layers)
+        # if start is specified, start at that layer
+        # if end is specified, stop at that layer
+        # otherwise, go through all layers
+        if start is not None:
+            for k in range(len(self.layers)):
+                if self.layers[k]["name"] == start:
+                    i = k
+                if self.layers[k]["name"] == end:
+                    j = k+1
+        # store a and h for each layer as instance variables
+        for layer in self.layers[i:j]:
+            W = layer["W"]
+            b = layer["b"]
+            f = layer["f"]
+
+            a = W.dot(y)+b
+            h = f(a)
+            self.a[i] = a
+            self.h[i] = h
+
+            y = h
+            i += 1
+
+        return y
         
     
     def backward(self, x, y):
@@ -72,7 +118,24 @@ class MLP:
             of the last output layer
         """
         ## TODO: Fill this in to complete backpropagation and accumulate derivatives
-        pass
+        self.forward(x)
+        y_est = self.h[-1]
+        g = self.est_lossderiv(y_est, y)
+        for layer in reversed(self.layers):
+            W = layer["W"]
+            a = self.a.pop()
+            h = self.h.pop()
+            
+            g = g*fderiv(a)
+            self.dW.append(np.outer(g, h))
+            self.db.append(g)
+            g = W.T.dot(g)
+
+            self.step(0.01)
+            self.zero_grad()
+        
+        return y_est
+
         
 
     def step(self, alpha):
@@ -84,12 +147,13 @@ class MLP:
         alpha: float
             Learning rate
         """
-        ## TODO: Fill this in
-        pass
+        for i in range(len(self.layers)):
+            self.layers[i]["W"] -= alpha*self.dW.pop()
+            self.layers[i]["b"] -= alpha*self.db.pop()
 
     def zero_grad(self):
         """
         Reset all gradients to zero
         """
-        ## TODO: Fill this in
-        pass
+        self.dW = []
+        self.db = []

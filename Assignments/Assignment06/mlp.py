@@ -27,8 +27,8 @@ class MLP:
         self.h = []
 
         ## backpropagation variables
-        self.dW = []
-        self.db = [] 
+        self.b_derivs = []
+        self.W_derivs = [] 
     
     def add_layer(self, m, f, fderiv, name=None):
         """
@@ -54,8 +54,6 @@ class MLP:
         ## multiply by 0.1 to avoid exploding gradients
         _W *= 0.1
         self.layers.append({"name": name, "m": m, "f": f, "fderiv": fderiv, "W": _W, "b": _b})
-        self.a.append(-1)
-        self.h.append(-1)
     
     def forward(self, x, start=None, end=None):
         """
@@ -75,33 +73,40 @@ class MLP:
         ndarray(m)
             Output of the network
         """
-        y = x.T
-        i = 0
-        j = len(self.layers)
-        # if start is specified, start at that layer
-        # if end is specified, stop at that layer
-        # otherwise, go through all layers
+        _start = 0
+        L = len(self.layers)
+        _end = L
+
+        self.a = [0]*L
+        self.h = [0]*L
+        
+        self.h[0] = x
+
         if start is not None:
-            for k in range(len(self.layers)):
+            for k in range(L):
                 if self.layers[k]["name"] == start:
-                    i = k
+                    _start = k
+                    break
+
+        if end is not None:
+            for k in range(L, _start, -1):
                 if self.layers[k]["name"] == end:
-                    j = k+1
-        # store a and h for each layer as instance variables
-        for layer in self.layers[i:j]:
+                    _end = k+1
+                    break       
+
+        k = _start
+        for layer in self.layers[_start: _end]:
             W = layer["W"]
             b = layer["b"]
             f = layer["f"]
-
+            y = self.h[k]
             a = W.dot(y)+b
             h = f(a)
-            self.a[i] = a
-            self.h[i] = h
+            self.a[k] = a
+            self.h[k] = h
 
-            y = h
-            i += 1
-
-        return y
+            k += 1
+        return self.h[-1]
         
     
     def backward(self, x, y):
@@ -118,21 +123,32 @@ class MLP:
             of the last output layer
         """
         ## TODO: Fill this in to complete backpropagation and accumulate derivatives
+        L = len(self.layers)
         self.forward(x)
-        y_est = self.h[-1]
+        y_est = self.h[L]
         g = self.est_lossderiv(y_est, y)
-        for layer in reversed(self.layers):
-            W = layer["W"]
-            a = self.a.pop()
-            h = self.h.pop()
+        ## fill b_derivs and W_derivs with zeros to start
+        self.b_derivs = np.zeros(L)
+        self.W_derivs = np.zeros(L)
+        print("hello")
+        ## loop through layers in reverse order
+        for k in range(L, -1, -1):
+            # step 1
+            if k < L:
+                g = np.multiply(g, self.layers[k]["fderiv"](self.a[k]))
             
-            g = g*fderiv(a)
-            self.dW.append(np.outer(g, h))
-            self.db.append(g)
-            g = W.T.dot(g)
 
-            self.step(0.01)
-            self.zero_grad()
+            # step 2
+            self.b_derivs[k] = g
+            self.W_derivs[k] = np.outer(g, self.h[k-1].T)
+
+            ## self check
+            print("good to go")
+            if self.h[k-1].shape[0] != g.shape[1]:
+                print("issue with h and g")
+
+            # step 3
+            g = self.layers[k]["W"].T.dot(g)
         
         return y_est
 

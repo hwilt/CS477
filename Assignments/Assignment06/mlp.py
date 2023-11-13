@@ -29,6 +29,8 @@ class MLP:
         ## backpropagation variables
         self.b_derivs = []
         self.W_derivs = [] 
+
+        self.add_layer(self.dim, None, None)
     
     def add_layer(self, m, f, fderiv, name=None):
         """
@@ -73,7 +75,7 @@ class MLP:
         ndarray(m)
             Output of the network
         """
-        _start = 0
+        _start = 1
         L = len(self.layers)
         _end = L
 
@@ -89,17 +91,19 @@ class MLP:
                     break
 
         if end is not None:
-            for k in range(L, _start, -1):
+            for k in range(L-1, _start, -1):
                 if self.layers[k]["name"] == end:
                     _end = k+1
                     break       
 
         k = _start
         for layer in self.layers[_start: _end]:
+            
             W = layer["W"]
             b = layer["b"]
             f = layer["f"]
-            y = self.h[k]
+            print(f"W: {W.shape}")
+            y = self.h[k-1]
             a = W.dot(y)+b
             h = f(a)
             self.a[k] = a

@@ -30,7 +30,7 @@ class MLP:
         self.b_derivs = []
         self.W_derivs = [] 
 
-        self.add_layer(self.dim, None, None)
+        #self.add_layer(self.dim, None, None)
     
     def add_layer(self, m, f, fderiv, name=None):
         """
@@ -56,6 +56,8 @@ class MLP:
         ## multiply by 0.1 to avoid exploding gradients
         _W *= 0.1
         self.layers.append({"name": name, "m": m, "f": f, "fderiv": fderiv, "W": _W, "b": _b})
+        self.b_derivs.append(np.zeros(_b.shape))
+        self.W_derivs.append(np.zeros(_W.shape))
     
     def forward(self, x, start=None, end=None):
         """
@@ -75,12 +77,12 @@ class MLP:
         ndarray(m)
             Output of the network
         """
-        _start = 1
+        _start = 0
         L = len(self.layers)
         _end = L
 
-        self.a = [0]*L
-        self.h = [0]*L
+        self.h = [None]
+
         
         self.h[0] = x
 
@@ -96,20 +98,25 @@ class MLP:
                     _end = k+1
                     break       
 
-        k = _start
+        k = 1
         for layer in self.layers[_start: _end]:
             
             W = layer["W"]
             b = layer["b"]
             f = layer["f"]
-            print(f"W: {W.shape}")
-            y = self.h[k-1]
-            a = W.dot(y)+b
+            #print(f"W: {W.shape}")
+
+
+            h_1 = self.h[k-1]
+            #print(f"h_1: {h_1.shape}")
+            a = W.dot(h_1)+b
             h = f(a)
-            self.a[k] = a
-            self.h[k] = h
+            #print(f"h: {h.shape}")
+            self.a.append(a)
+            self.h.append(h)
 
             k += 1
+        #   print(f"self.h[-1]: {self.h[-1]}")
         return self.h[-1]
         
     
@@ -131,10 +138,7 @@ class MLP:
         self.forward(x)
         y_est = self.h[L]
         g = self.est_lossderiv(y_est, y)
-        ## fill b_derivs and W_derivs with zeros to start
-        self.b_derivs = np.zeros(L)
-        self.W_derivs = np.zeros(L)
-        print("hello")
+        #print("hello")
         ## loop through layers in reverse order
         for k in range(L, -1, -1):
             # step 1
@@ -143,14 +147,13 @@ class MLP:
             
 
             # step 2
-            self.b_derivs[k] = g
-            self.W_derivs[k] = np.outer(g, self.h[k-1].T)
+            self.b_derivs[k] += g
+            self.W_derivs[k] += np.outer(g, self.h[k-1].T)
 
             ## self check
-            print("good to go")
             if self.h[k-1].shape[0] != g.shape[1]:
                 print("issue with h and g")
-
+            print("good to go")
             # step 3
             g = self.layers[k]["W"].T.dot(g)
         
@@ -175,5 +178,6 @@ class MLP:
         """
         Reset all gradients to zero
         """
-        self.dW = []
-        self.db = []
+        for i in range(len(self.layers)):
+            self.dW[i] = np.zeros(self.layers[i]["W"].shape)
+            self.db[i] = np.zeros(self.layers[i]["b"].shape)

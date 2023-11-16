@@ -81,7 +81,8 @@ class MLP:
         L = len(self.layers)
         _end = L
 
-        self.h = [None]
+        self.h = np.zeros(L+1, dtype=object)
+        self.a = np.zeros(L+1, dtype=object)
 
         
         self.h[0] = x
@@ -112,8 +113,8 @@ class MLP:
             a = W.dot(h_1)+b
             h = f(a)
             #print(f"h: {h.shape}")
-            self.a.append(a)
-            self.h.append(h)
+            self.a[k] = a
+            self.h[k] = h
 
             k += 1
         #   print(f"self.h[-1]: {self.h[-1]}")
@@ -134,31 +135,30 @@ class MLP:
             of the last output layer
         """
         ## TODO: Fill this in to complete backpropagation and accumulate derivatives
-        L = len(self.layers)
+        L = len(self.layers) - 1
         self.forward(x)
         y_est = self.h[L]
         g = self.est_lossderiv(y_est, y)
-        #print("hello")
+
         ## loop through layers in reverse order
-        for k in range(L, -1, -1):
-            # step 1
+        for k in range(L, 0, -1):
+            # Step 1: Propagate gradient backwards through the nonlinear output fk of this layer
             if k < L:
-                g = np.multiply(g, self.layers[k]["fderiv"](self.a[k]))
-            
+                x = self.layers[k]["fderiv"](self.a[k])
+                g = g*x
 
-            # step 2
-            self.b_derivs[k] += g
-            self.W_derivs[k] += np.outer(g, self.h[k-1].T)
+            # Step 2: Compute the gradients of the weights and biases at this layer
+            #print(k, len(self.b_derivs))
+            self.b_derivs[k] = self.b_derivs[k] + g
+            x = np.outer(g, self.h[k-1].T)
+            print(self.W_derivs[k])
+            print(self.h[k-1].T)
+            self.W_derivs[k] = self.W_derivs[k] + x
 
-            ## self check
-            if self.h[k-1].shape[0] != g.shape[1]:
-                print("issue with h and g")
-            print("good to go")
-            # step 3
-            g = self.layers[k]["W"].T.dot(g)
-        
-        return y_est
+            # Step 3: Propagate the gradient backwards through the linear part of this layer to be used at the next layer back
+            g += self.layers[k]["W"].T.dot(g)
 
+        return g
         
 
     def step(self, alpha):

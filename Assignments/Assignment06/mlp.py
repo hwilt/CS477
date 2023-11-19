@@ -117,7 +117,7 @@ class MLP:
             self.h[k] = h
 
             k += 1
-        #   print(f"self.h[-1]: {self.h[-1]}")
+        #print(f"self.h[-1]: {self.h[-1]}")
         return self.h[-1]
         
     
